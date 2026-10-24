@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - run: uv run pytest -m "not integration"
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      SEC_USER_AGENT: "CI ci@example.com"
+    steps:
+      - uses: actions/checkout@v7
+      # Skipped until Task A.1 adds alembic.ini; hashFiles needs the checkout, so the check is per step.
+      - uses: astral-sh/setup-uv@v10
+        if: hashFiles('alembic.ini') != ''
+      - run: uv sync --locked
+        if: hashFiles('alembic.ini') != ''
+      - run: uv run alembic upgrade head
+        if: hashFiles('alembic.ini') != ''
+      - run: uv run pytest -m integration
+        if: hashFiles('alembic.ini') != ''
