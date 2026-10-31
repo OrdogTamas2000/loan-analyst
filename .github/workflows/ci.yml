@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
       - run: uv sync --locked
       - run: uv run pre-commit run --all-files --show-diff-on-failure
 
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
       - run: uv sync --locked
       - run: uv run pytest -m "not integration"
 
@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # Skipped until Task A.1 adds alembic.ini; hashFiles needs the checkout, so the check is per step.
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         if: hashFiles('alembic.ini') != ''
       - run: uv sync --locked
         if: hashFiles('alembic.ini') != ''
